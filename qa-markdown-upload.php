@@ -68,10 +68,11 @@ class qa_markdown_upload {
                 }
             }
 
-            //	Find out some information about the uploaded file and check it's not too large
+            //	Find out some information about the uploaded file and check it's not too large1
 
             if (empty($message)) {
-                require_once QA_INCLUDE_DIR.'qa-app-blobs.php';
+                //require_once QA_INCLUDE_DIR.'qa-app-blobs.php';
+                require_once QA_INCLUDE_DIR.'qa-app-upload.php';
 
                 $file=reset($_FILES);
                 $pathinfo=pathinfo($file['name']);
@@ -105,20 +106,34 @@ class qa_markdown_upload {
 
             //	If there have been no errors, looks like we're all set...
 
-            if (empty($message)) {
-                require_once QA_INCLUDE_DIR.'qa-db-blobs.php';
-
+            if (empty($message1)) {
+                //require_once QA_INCLUDE_DIR.'qa-db-blobs.php';
+                require_once QA_INCLUDE_DIR.'qa-app-upload.php';
+            
                 $userid=qa_get_logged_in_userid();
                 $cookieid=isset($userid) ? qa_cookie_get() : qa_cookie_get_create();
+                $result = qa_upload_file($file['tmp_name'], @$file['name']);
+                // $blobid=qa_db_blob_create(file_get_contents($file['tmp_name']), $extension, @$file['name'], $userid, $cookieid, qa_remote_ip_address());
+                // $blobid=qa_db_blob_create(file_get_contents($file['tmp_name']), 
+                //                          $extension, 
+                //                          @$file['name'], 
+                //                          $userid, 
+                //                          $cookieid, 
+                //                          qa_remote_ip_address());
 
-                $blobid=qa_db_blob_create(file_get_contents($file['tmp_name']), $extension, @$file['name'], $userid, $cookieid, qa_remote_ip_address());
 
-                if (isset($blobid)) {
-                    $url=qa_get_blob_url($blobid, true);
-                    $success = true;
-                }
-                else
-                    $message='Failed to create object in database - please try again';
+                if(in_array('error', $result)) {
+                        $message='Failed to upload a file - please try again';
+                } else {
+                     $url = $result['bloburl'];
+                     $success = true;   
+                }                                
+#                if (isset($blobid)) {
+#                    $url=qa_get_blob_url($blobid, true);
+#                    $success = true;
+#                }
+#                else
+#                    $message='Failed to create object in database - please try again';
             }
         }
 
